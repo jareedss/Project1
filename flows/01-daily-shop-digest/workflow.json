@@ -1,0 +1,454 @@
+{
+  "name": "01 - Daily Shop Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://openapi.etsy.com/v3/application/shops/ETSY_SHOP_ID/listings/active",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "404af7f0-ded5-4faa-bdb5-e46ddc0317e2",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Mme2pGFGz946YnZc",
+          "name": "Etsy API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Toma la respuesta de Etsy y devuelve un elemento por listing\n// con solo los campos que vamos a guardar en el histórico.\nconst results = $input.first().json.results || [];\nconst today = $now.toFormat('yyyy-MM-dd');\n\nreturn results.map(listing => ({\n    json: {\n    key: `${today}_${listing.listing_id}`,\n    date: today,\n    listing_id: listing.listing_id,\n    title: listing.title.slice(0, 40),\n    views: listing.views,\n    favorites: listing.num_favorers,\n    price: listing.price.amount / listing.price.divisor,\n    currency: listing.price.currency_code,\n    auto_renew: listing.should_auto_renew,\n  },\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "5fd2cddd-90d2-406b-a4f5-ed3b8034e4b4",
+      "name": "Clean listings"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "SPREADSHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Etsy Shop History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "key": "={{ $json.key }}",
+            "date": "={{ $json.date }}",
+            "listing_id": "={{ $json.listing_id }}",
+            "title": "={{ $json.title }}",
+            "views": "={{ $json.views }}",
+            "favorites": "={{ $json.favorites }}",
+            "price": "={{ $json.price }}",
+            "currency": "={{ $json.currency }}",
+            "auto_renew": "={{ $json.auto_renew }}"
+          },
+          "matchingColumns": [
+            "key"
+          ],
+          "schema": [
+            {
+              "id": "key",
+              "displayName": "key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "listing_id",
+              "displayName": "listing_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "views",
+              "displayName": "views",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "favorites",
+              "displayName": "favorites",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "auto_renew",
+              "displayName": "auto_renew",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        0
+      ],
+      "id": "8fc90796-a4fd-4579-8d75-6e5cd77005ef",
+      "name": "Save to history",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NTOFWoCQXiM9OYUG",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1GtW57LXv8ogiLTYuZwY97qleyHJpDGHD4M6DVXEcals",
+          "mode": "list",
+          "cachedResultName": "Etsy Shop History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GtW57LXv8ogiLTYuZwY97qleyHJpDGHD4M6DVXEcals/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GtW57LXv8ogiLTYuZwY97qleyHJpDGHD4M6DVXEcals/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        784,
+        0
+      ],
+      "id": "c20f6882-346f-4cad-9ff6-e6f53151c979",
+      "name": "Read history",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NTOFWoCQXiM9OYUG",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compara las visitas/favoritos de hoy con la última fecha anterior de cada listing.\nconst rows = $input.all().map(i => i.json).filter(r => r.key);\nconst today = $now.toFormat('yyyy-MM-dd');\n\nconst byListing = {};\nfor (const r of rows) {\n  (byListing[r.listing_id] ||= []).push(r);\n}\n\nconst out = [];\nfor (const [id, list] of Object.entries(byListing)) {\n  list.sort((a, b) => String(a.date).localeCompare(String(b.date)));\n  const current = list.find(r => r.date === today);\n  if (!current) continue;\n  const previous = [...list].reverse().find(r => r.date < today);\n\n  out.push({\n    json: {\n      listing_id: id,\n      title: current.title,\n      views: Number(current.views),\n      favorites: Number(current.favorites),\n      views_delta: previous ? Number(current.views) - Number(previous.views) : null,\n      favorites_delta: previous ? Number(current.favorites) - Number(previous.favorites) : null,\n      auto_renew: String(current.auto_renew).toUpperCase() === 'TRUE',\n      has_previous: Boolean(previous),\n    },\n  });\n}\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "c3f59e01-28ba-4975-a055-14406490da6f",
+      "name": "Compute deltas"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 11
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        64,
+        0
+      ],
+      "id": "c3d2362b-c134-41e0-bb9b-71d37bde327b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const listings = $input.all().map(i => i.json);\n\nconst system = `You are a concise e-commerce analyst for an Etsy shop that sells Google Sheets templates.\nYou receive daily stats per listing (views, favorites, deltas versus the previous recorded day).\nReply ONLY with valid JSON, no markdown, with this shape:\n{\"summary\": string, \"alert\": string or null, \"action\": string}\nRules:\n- Write in Spanish. summary: max 2 sentences. action: one concrete thing to do today.\n- Volumes are tiny. Never draw statistical conclusions from a few views; say so if relevant.\n- alert is for real problems only (for example auto_renew false). Otherwise null.\n- If has_previous is false, say it is the first day of data and do not talk about changes.\n- Use only the numbers provided. Never invent figures.`;\n\nreturn [{\n  json: {\n    body: {\n      model: 'claude-haiku-5-5',\n      max_tokens: 400,\n      system,\n      messages: [{ role: 'user', content: JSON.stringify(listings) }],\n    },\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        0
+      ],
+      "id": "c9a2db60-9782-4ff6-8482-62424792eb81",
+      "name": "Build prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "ea982d70-2fb7-49de-be9d-b50d13d99ee7",
+      "name": "Ask Claude",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "RVmvFObrOiG7loxd",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const stats = $('Compute deltas').all().map(i => i.json);\n\n// 1) Leer la respuesta de Claude; si falla, usar un resumen de reserva.\nlet ai = null;\ntry {\n  let text = $input.first().json.content[0].text.trim();\n  text = text.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n  const parsed = JSON.parse(text);\n  if (typeof parsed.summary === 'string' && typeof parsed.action === 'string') ai = parsed;\n} catch (e) { /* se usa el plan B */ }\n\nif (!ai) {\n  ai = { summary: 'No pude generar el análisis automático hoy; estas son las cifras.', alert: null, action: 'Revisa las cifras manualmente.' };\n}\n\n// 2) Las cifras las calcula el código, no el modelo.\nconst fmt = d => d === null ? 'n/d' : (d > 0 ? `+${d}` : `${d}`);\nconst lines = stats.map(s =>\n  `• ${s.title}\\n  visitas ${s.views} (${fmt(s.views_delta)}) | favoritos ${s.favorites} (${fmt(s.favorites_delta)})`\n);\n\nconst parts = [`📊 ByJaredStudios · ${$now.toFormat('dd/MM/yyyy')}`, '', ...lines, '', ai.summary];\nif (ai.alert) parts.push('', `⚠️ ${ai.alert}`);\nparts.push('', `👉 ${ai.action}`);\n\nreturn [{ json: { message: parts.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        0
+      ],
+      "id": "7d48f8e8-12e9-47be-8d91-66c9c2da7923",
+      "name": "Validate and format"
+    },
+    {
+      "parameters": {
+        "chatId": "TELEGRAM_CHAT_ID",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1803.2000000000003,
+        0
+      ],
+      "id": "1c58b932-0032-49a3-ac33-b43116315568",
+      "name": "Send a text message",
+      "webhookId": "b28b56d3-4a7b-48a2-a221-786055c763f5",
+      "credentials": {
+        "telegramApi": {
+          "id": "7PfwA39Pmel0vKtg",
+          "name": "Telegram bot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Clean listings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean listings": {
+      "main": [
+        [
+          {
+            "node": "Save to history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to history": {
+      "main": [
+        [
+          {
+            "node": "Read history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read history": {
+      "main": [
+        [
+          {
+            "node": "Compute deltas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute deltas": {
+      "main": [
+        [
+          {
+            "node": "Build prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build prompt": {
+      "main": [
+        [
+          {
+            "node": "Ask Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask Claude": {
+      "main": [
+        [
+          {
+            "node": "Validate and format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate and format": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "509296f0-e8aa-4016-9fd5-bd3585df3fbe",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cd07fe6d52f23412e29072dad2376801e98b766a218db31922abe381a975dc2a"
+  },
+  "nodeGroups": [],
+  "id": "3f4f3yNoPBEueub1",
+  "tags": []
+}
