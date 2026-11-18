@@ -1,0 +1,67 @@
+{
+  "name": "00 - Error Alert",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "308b50ca-391b-4742-b555-5115bb900696",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "chatId": "TELEGRAM_CHAT_ID",
+        "text": "=🚨 Falló: {{ $json.workflow.name }} Nodo: {{ $json.execution.lastNodeExecuted }} Error: {{ $json.execution.error.message }} Ver ejecución: {{ $json.execution.url }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "22c03f08-725e-4074-ae1b-8ef0d94f1d02",
+      "name": "Alert on Telegram",
+      "webhookId": "43f264da-bfa8-4d81-a11f-c49a91ac731a",
+      "credentials": {
+        "telegramApi": {
+          "id": "7PfwA39Pmel0vKtg",
+          "name": "Telegram bot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Alert on Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bafce45e-0f0b-45b1-8616-37ef75c9a3ce",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cd07fe6d52f23412e29072dad2376801e98b766a218db31922abe381a975dc2a"
+  },
+  "nodeGroups": [],
+  "id": "vhadMGmcTZQiStuJ",
+  "tags": []
+}
